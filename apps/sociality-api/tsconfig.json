@@ -1,0 +1,14 @@
+{
+  "extends": "../../packages/api-core/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "api-core/*": ["../../packages/api-core/*"],
+      "api-core/src/*": ["../../packages/api-core/src/*"]
+    },
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["src"]
+}
