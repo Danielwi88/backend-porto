@@ -3,11 +3,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
-    "paths": {
-      "api-core/*": ["../../packages/api-core/*"],
-      "api-core/src/*": ["../../packages/api-core/src/*"]
-    }
   },
   "include": ["src"]
 }
