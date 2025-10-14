@@ -1,4 +1,4 @@
-import { makeApp } from "api-core/src/server";
+import { makeApp } from "api-core";
 
 const app = makeApp({ enable: { posts: true } });
 const port = Number(process.env.PORT ?? 9000);
