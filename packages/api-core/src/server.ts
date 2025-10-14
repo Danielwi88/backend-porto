@@ -18,7 +18,14 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginResourcePolicy: false,
+    }),
+  );
   app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
   app.use(express.json({ limit: "2mb" }));
   app.use(rateLimit({ windowMs: 60_000, max: 300 }));
