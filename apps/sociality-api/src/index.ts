@@ -19,10 +19,15 @@ app.get("/openapi.json", (req, res) => {
   res.send(doc);
 });
 
+// Serve Swagger UI for both local and production environments
 app.use(
   "/docs",
   swaggerUi.serve,
-  swaggerUi.setup(undefined, { swaggerUrl: "/openapi.json" })
+  swaggerUi.setup(undefined, {
+    swaggerUrl: `${process.env.PUBLIC_API_URL || ""}/openapi.json`,
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+  })
 );
 
 const port = Number(process.env.PORT ?? 9000);
