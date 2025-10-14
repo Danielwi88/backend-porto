@@ -17,6 +17,10 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   app.use(express.json({ limit: "2mb" }));
   app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
+  app.get("/", (_req: Request, res: Response) =>
+    res.json({ ok: true, message: "Sociality API" })
+  );
+
   app.get("/health", (_req: Request, res: Response) => res.json({ ok: true, ts: Date.now() }));
 
   app.use("/api/users", usersRouter);
