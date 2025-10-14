@@ -13,6 +13,7 @@
     "prisma:generate": "prisma generate --schema prisma/schema.prisma"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^6.4.0",
     "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

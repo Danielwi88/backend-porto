@@ -12,8 +12,14 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   // Honor reverse proxies (Railway) so middleware like rate-limit reads X-Forwarded-For
   app.set("trust proxy", true);
 
+  const rawOrigins = process.env.CORS_ORIGIN ?? "";
+  const allowedOrigins = rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.use(helmet());
-  app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? "*" }));
+  app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
   app.use(express.json({ limit: "2mb" }));
   app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
