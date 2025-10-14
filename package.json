@@ -12,6 +12,8 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "pnpm build:sociality",
+    "start": "pnpm start:sociality",
     "dev:sociality": "pnpm --filter sociality-api dev",
     "build:sociality": "pnpm --filter sociality-api build",
     "start:sociality": "pnpm --filter sociality-api start"
