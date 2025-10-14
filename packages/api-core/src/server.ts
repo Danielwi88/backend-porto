@@ -10,7 +10,7 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   const app = express();
 
   // Honor reverse proxies (Railway) so middleware like rate-limit reads X-Forwarded-For
-  app.set("trust proxy", true);
+  app.set("trust proxy", 1);
 
   const rawOrigins = process.env.CORS_ORIGIN ?? "";
   const allowedOrigins = rawOrigins
