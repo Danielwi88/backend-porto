@@ -9,6 +9,9 @@ import { postsRouter } from "./modules/posts/posts.router.js";
 export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   const app = express();
 
+  // Honor reverse proxies (Railway) so middleware like rate-limit reads X-Forwarded-For
+  app.set("trust proxy", true);
+
   app.use(helmet());
   app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? "*" }));
   app.use(express.json({ limit: "2mb" }));
