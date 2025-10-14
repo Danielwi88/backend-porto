@@ -25,6 +25,9 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(undefined, {
     swaggerUrl: `${process.env.PUBLIC_API_URL || ""}/openapi.json`,
+    swaggerOptions: {
+      persistAuthorization: true,
+    }, 
     explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
   })
