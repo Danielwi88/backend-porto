@@ -12,6 +12,10 @@ import { followRouter } from "./modules/follow/follow.router.js";
 import { commentsRouter } from "./modules/comments/comments.router.js";
 import { uploadsDir } from "./utils/uploads.js";
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   const app = express();
 
@@ -19,10 +23,26 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   app.set("trust proxy", 1);
 
   const rawOrigins = process.env.CORS_ORIGIN ?? "";
-  const allowedOrigins = rawOrigins
+  const parsedOrigins = rawOrigins
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  const exactOrigins = new Set<string>();
+  const wildcardOrigins: RegExp[] = [];
+
+  for (const origin of parsedOrigins) {
+    const normalized = origin.replace(/\/$/, "");
+    if (normalized.includes("*")) {
+      const regex = normalized
+        .split("*")
+        .map((segment) => escapeRegex(segment))
+        .join(".*");
+      wildcardOrigins.push(new RegExp(`^${regex}$`));
+    } else {
+      exactOrigins.add(normalized);
+    }
+  }
 
   app.use(
     helmet({
@@ -32,7 +52,30 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
       crossOriginResourcePolicy: false,
     }),
   );
-  app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const normalizedOrigin = origin.replace(/\/$/, "");
+
+        if (!exactOrigins.size && wildcardOrigins.length === 0) {
+          return callback(null, true);
+        }
+
+        if (
+          exactOrigins.has(normalizedOrigin) ||
+          wildcardOrigins.some((pattern) => pattern.test(normalizedOrigin))
+        ) {
+          return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+      },
+    }),
+  );
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(rateLimit({ windowMs: 60_000, max: 300 }));

@@ -51,10 +51,10 @@ export async function register(data: {
   return { token: signToken(user.id, user.role) };
 }
 
-export async function login(username: string, password: string) {
-  const normalizedUsername = username.trim();
+export async function login(email: string, password: string) {
+  const normalizedEmail = email.trim().toLowerCase();
   const user = await prisma.user.findUnique({
-    where: { username: normalizedUsername },
+    where: { email: normalizedEmail },
     select: { id: true, passwordHash: true, role: true },
   });
 

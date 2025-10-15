@@ -14,6 +14,6 @@ export async function register(req: Request, res: Response) {
 
 export async function login(req: Request, res: Response) {
   const payload = (req as LoginRequest).input.body;
-  const result = await svc.login(payload.username, payload.password);
+  const result = await svc.login(payload.email, payload.password);
   res.json(result);
 }

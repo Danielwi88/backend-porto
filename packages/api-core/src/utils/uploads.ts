@@ -18,6 +18,23 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage });
+const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/avif", "image/jpg", "image/pjpeg"]);
+
+const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+  const mimetype = (file.mimetype || "").toLowerCase();
+  if (allowedMimeTypes.has(mimetype)) return cb(null, true);
+
+  const error = Object.assign(new Error("Unsupported image type"), { status: 400 });
+  cb(error);
+};
+
+export const upload = multer({ storage, fileFilter });
 export const uploadsDir = rootUploadDir;
-export const publicUrlFor = (filename: string) => `/uploads/${filename}`;
+
+const rawPublicBase = process.env.PUBLIC_API_URL?.trim();
+const publicBaseUrl = rawPublicBase ? rawPublicBase.replace(/\/$/, "") : "";
+
+export const publicUrlFor = (filename: string) => {
+  const pathSegment = `/uploads/${filename}`;
+  return publicBaseUrl ? `${publicBaseUrl}${pathSegment}` : pathSegment;
+};
