@@ -1,7 +1,10 @@
+import { ensureDatabaseCompatibility } from "api-core";
 import { prisma } from "api-core/src/db";
 import { hash } from "api-core/src/utils/passwords";
 
 async function main() {
+  await ensureDatabaseCompatibility();
+
   const email = process.env.ADMIN_EMAIL?.trim() || "admin@example.com";
   const username = process.env.ADMIN_USERNAME?.trim() || "admin";
   const password = process.env.ADMIN_PASSWORD?.trim() || "Admin12345!";

@@ -1,5 +1,12 @@
-import { makeApp, registerAllPaths, buildOpenApiDoc } from "api-core";
+import { makeApp, registerAllPaths, buildOpenApiDoc, ensureDatabaseCompatibility } from "api-core";
 import swaggerUi from "swagger-ui-express";
+
+try {
+  await ensureDatabaseCompatibility();
+} catch (error) {
+  console.error("Unable to align database schema", error);
+  process.exit(1);
+}
 
 const app = makeApp({ enable: { posts: true } });
 

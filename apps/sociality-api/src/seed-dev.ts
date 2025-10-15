@@ -1,3 +1,4 @@
+import { ensureDatabaseCompatibility } from "api-core";
 import { prisma } from "api-core/src/db";
 import { hash } from "api-core/src/utils/passwords";
 
@@ -249,6 +250,7 @@ async function seedEngagement(
 }
 
 async function main() {
+  await ensureDatabaseCompatibility();
   await resetDatabase();
   const users = await seedUsers();
   const posts = await seedPosts(users);
