@@ -27,9 +27,12 @@ app.use(
     swaggerUrl: `${process.env.PUBLIC_API_URL || ""}/openapi.json`,
     swaggerOptions: {
       persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: "list",
     }, 
     explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
+    customCss: `.swagger-ui .topbar { display: none }`,
+    customSiteTitle: "Sociality API Docs",
   })
 );
 

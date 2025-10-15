@@ -3,17 +3,39 @@ import jwt from "jsonwebtoken";
 
 export type JwtPayload = { sub: string; role: "USER" | "ADMIN" };
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+const jwtSecret = () => {
+  const secret = process.env.JWT_SECRET?.trim();
+  if (!secret) throw new Error("JWT_SECRET is not configured");
+  return secret;
+};
+
+const extractToken = (req: Request) => {
   const header = req.headers.authorization ?? "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-  if (!token) return res.status(401).json({ error: "Missing token" });
+  return header.startsWith("Bearer ") ? header.slice(7) : "";
+};
+
+const verifyToken = (token: string): JwtPayload | null => {
+  if (!token) return null;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-    req.user = payload;
-    next();
+    return jwt.verify(token, jwtSecret()) as JwtPayload;
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    return null;
   }
+};
+
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  const payload = verifyToken(token);
+  if (payload) req.user = payload;
+  next();
+}
+
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  const payload = verifyToken(token);
+  if (!payload) return res.status(401).json({ error: "Unauthorized" });
+  req.user = payload;
+  next();
 }
 
 export function requireRole(role: "ADMIN") {
