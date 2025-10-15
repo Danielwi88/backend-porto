@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Router as ExpressRouter } from "express";
 import { requireAuth } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
+import { asyncHandler } from "../../middlewares/async-handler.js";
 import { usernameParamSchema } from "../users/users.schemas.js";
 import * as controller from "./follow.controller.js";
 
@@ -11,12 +12,12 @@ followRouter.post(
   "/:username",
   requireAuth,
   validate(usernameParamSchema),
-  controller.follow,
+  asyncHandler(controller.follow),
 );
 
 followRouter.delete(
   "/:username",
   requireAuth,
   validate(usernameParamSchema),
-  controller.unfollow,
+  asyncHandler(controller.unfollow),
 );

@@ -12,6 +12,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "predeploy": "node ./scripts/predeploy-check.js",
     "build": "pnpm --filter api-core build && pnpm --filter sociality-api build",
     "start": "pnpm --filter sociality-api start",
     "dev:sociality": "pnpm --filter sociality-api dev",

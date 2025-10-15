@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Router as ExpressRouter } from "express";
 import { optionalAuth, requireAuth } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
+import { asyncHandler } from "../../middlewares/async-handler.js";
 import { upload } from "../../utils/uploads.js";
 import {
   commentCreateSchema,
@@ -20,7 +21,7 @@ postsRouter.get(
   "/:id",
   optionalAuth,
   validate(postIdParamSchema),
-  controller.getPost,
+  asyncHandler(controller.getPost),
 );
 
 postsRouter.post(
@@ -28,61 +29,61 @@ postsRouter.post(
   requireAuth,
   upload.single("image"),
   validate(createPostSchema),
-  controller.createPost,
+  asyncHandler(controller.createPost),
 );
 
 postsRouter.delete(
   "/:id",
   requireAuth,
   validate(postIdParamSchema),
-  controller.deletePost,
+  asyncHandler(controller.deletePost),
 );
 
 postsRouter.post(
   "/:id/like",
   requireAuth,
   validate(postIdParamSchema),
-  controller.likePost,
+  asyncHandler(controller.likePost),
 );
 
 postsRouter.delete(
   "/:id/like",
   requireAuth,
   validate(postIdParamSchema),
-  controller.unlikePost,
+  asyncHandler(controller.unlikePost),
 );
 
 postsRouter.post(
   "/:id/save",
   requireAuth,
   validate(postIdParamSchema),
-  controller.savePost,
+  asyncHandler(controller.savePost),
 );
 
 postsRouter.delete(
   "/:id/save",
   requireAuth,
   validate(postIdParamSchema),
-  controller.unsavePost,
+  asyncHandler(controller.unsavePost),
 );
 
 postsRouter.get(
   "/:postId/comments",
   optionalAuth,
   validate(commentsListSchema),
-  controller.listComments,
+  asyncHandler(controller.listComments),
 );
 
 postsRouter.post(
   "/:postId/comments",
   requireAuth,
   validate(commentCreateSchema),
-  controller.addComment,
+  asyncHandler(controller.addComment),
 );
 
 postsRouter.get(
   "/:postId/likes",
   optionalAuth,
   validate(likesListSchema),
-  controller.listPostLikes,
+  asyncHandler(controller.listPostLikes),
 );

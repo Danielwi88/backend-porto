@@ -15,6 +15,7 @@
     "typescript": "^5.6.3"
   },
   "scripts": {
+    "predeploy": "node ../../scripts/predeploy-check.js",
     "dev": "dotenv -e ../../.env -- tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json && prisma generate --schema ../../packages/api-core/prisma/schema.prisma",
     "start": "node dist/index.js",
