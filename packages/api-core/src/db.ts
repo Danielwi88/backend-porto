@@ -2,23 +2,34 @@ import { PrismaClient } from "@prisma/client";
 
 export const prisma = new PrismaClient();
 
-async function ensureLegacyUsernames() {
-  const columnInfo = await prisma.$queryRaw<
-    Array<{ is_nullable: "YES" | "NO" }>
-  >`
-    SELECT is_nullable
+type ColumnMetadata = {
+  column_name: string;
+  is_nullable: "YES" | "NO";
+};
+
+async function ensureUserTableShape() {
+  const columnInfo = await prisma.$queryRaw<ColumnMetadata[]>`
+    SELECT column_name, is_nullable
     FROM information_schema.columns
     WHERE table_schema = 'public'
       AND table_name = 'User'
-      AND column_name = 'username'
-    LIMIT 1
   `;
 
-  const columnExists = columnInfo.length > 0;
+  const columns = new Map(columnInfo.map((col) => [col.column_name, col]));
 
-  if (!columnExists) {
-    await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN "username" TEXT`);
-  }
+  const ensureColumn = async (name: string, definition: string) => {
+    if (!columns.has(name)) {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN ${definition}`);
+      columns.set(name, { column_name: name, is_nullable: "YES" });
+    }
+  };
+
+  await Promise.all([
+    ensureColumn(`username`, `"username" TEXT`),
+    ensureColumn(`phone`, `"phone" TEXT`),
+    ensureColumn(`bio`, `"bio" TEXT`),
+    ensureColumn(`avatarUrl`, `"avatarUrl" TEXT`),
+  ]);
 
   await prisma.$executeRawUnsafe(`
     UPDATE "User"
@@ -48,7 +59,7 @@ let schemaGuard: Promise<void> | null = null;
 
 export function ensureDatabaseCompatibility(): Promise<void> {
   if (!schemaGuard) {
-    schemaGuard = ensureLegacyUsernames().catch((error) => {
+    schemaGuard = ensureUserTableShape().catch((error) => {
       console.error("Failed to ensure database compatibility", error);
       throw error;
     });
