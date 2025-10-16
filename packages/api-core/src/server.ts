@@ -22,17 +22,22 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
   // Honor reverse proxies (Railway) so middleware like rate-limit reads X-Forwarded-For
   app.set("trust proxy", 1);
 
+  const configuredOriginsRaw = process.env.CORS_ORIGIN ?? "";
+  const explicitOrigins = configuredOriginsRaw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   const fallbackOrigins = [
     process.env.PUBLIC_API_URL,
     process.env.RAILWAY_STATIC_URL,
     process.env.URL,
   ].filter(Boolean) as string[];
 
-  const rawOrigins = [process.env.CORS_ORIGIN ?? "", ...fallbackOrigins].join(",");
-  const parsedOrigins = rawOrigins
-    .split(",")
+  const parsedOrigins = [...explicitOrigins, ...fallbackOrigins]
     .map((origin) => origin.trim())
     .filter(Boolean);
+  const hasExplicitOrigins = explicitOrigins.length > 0;
 
   const exactOrigins = new Set<string>();
   const wildcardOrigins: RegExp[] = [];
@@ -76,7 +81,7 @@ export function makeApp(opts: { enable: { posts?: boolean } }): Express {
 
         const normalizedOrigin = origin.replace(/\/$/, "");
 
-        if (!exactOrigins.size && wildcardOrigins.length === 0) {
+        if (!hasExplicitOrigins) {
           return callback(null, true);
         }
 
