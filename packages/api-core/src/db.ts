@@ -66,6 +66,11 @@ async function ensureFollowTable() {
   `);
 
   await prisma.$executeRawUnsafe(`
+    ALTER TABLE "Follow"
+      ALTER COLUMN "createdAt" SET DEFAULT now();
+  `);
+
+  await prisma.$executeRawUnsafe(`
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -112,6 +117,12 @@ async function ensurePostGraphTables() {
   `);
 
   await prisma.$executeRawUnsafe(`
+    ALTER TABLE "Post"
+      ALTER COLUMN "createdAt" SET DEFAULT now(),
+      ALTER COLUMN "updatedAt" SET DEFAULT now();
+  `);
+
+  await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Comment" (
       "id" TEXT PRIMARY KEY,
       "postId" TEXT NOT NULL,
@@ -119,6 +130,11 @@ async function ensurePostGraphTables() {
       "body" TEXT NOT NULL,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
     )
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "Comment"
+      ALTER COLUMN "createdAt" SET DEFAULT now();
   `);
 
   await prisma.$executeRawUnsafe(`
@@ -131,12 +147,22 @@ async function ensurePostGraphTables() {
   `);
 
   await prisma.$executeRawUnsafe(`
+    ALTER TABLE "Like"
+      ALTER COLUMN "createdAt" SET DEFAULT now();
+  `);
+
+  await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Save" (
       "id" TEXT PRIMARY KEY,
       "postId" TEXT NOT NULL,
       "userId" TEXT NOT NULL,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
     )
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "Save"
+      ALTER COLUMN "createdAt" SET DEFAULT now();
   `);
 
   await prisma.$executeRawUnsafe(`
