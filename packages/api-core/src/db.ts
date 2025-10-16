@@ -5,6 +5,7 @@ export const prisma = new PrismaClient();
 type ColumnMetadata = {
   column_name: string;
   is_nullable: "YES" | "NO";
+  column_default: string | null;
 };
 
 async function ensurePgcrypto() {
@@ -15,23 +16,48 @@ async function ensurePgcrypto() {
   }
 }
 
-async function ensureColumns(table: string, columns: Array<{ name: string; definition: string }>) {
-  const columnInfo = (await prisma.$queryRawUnsafe(
-    `SELECT column_name, is_nullable
+async function getColumns(table: string): Promise<Map<string, ColumnMetadata>> {
+  const result = (await prisma.$queryRawUnsafe(
+    `SELECT column_name, is_nullable, column_default
      FROM information_schema.columns
      WHERE table_schema = 'public'
        AND table_name = '${table}'`
   )) as ColumnMetadata[] | null;
 
-  const rows = columnInfo ?? [];
+  const rows = result ?? [];
+  return new Map(rows.map((col) => [col.column_name, col]));
+}
 
-  const existing = new Set(rows.map((col) => col.column_name));
+async function ensureColumns(table: string, columns: Array<{ name: string; definition: string }>) {
+  const existing = await getColumns(table);
 
   for (const column of columns) {
     if (!existing.has(column.name)) {
       await prisma.$executeRawUnsafe(`ALTER TABLE "${table}" ADD COLUMN ${column.definition}`);
     }
   }
+}
+
+async function ensureTimestampColumn(table: string, column: string) {
+  const columns = await getColumns(table);
+
+  if (!columns.has(column)) {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "${table}" ADD COLUMN "${column}" TIMESTAMPTZ`);
+  }
+
+  await prisma.$executeRawUnsafe(
+    `UPDATE "${table}"
+     SET "${column}" = now()
+     WHERE "${column}" IS NULL`,
+  );
+
+  await prisma.$executeRawUnsafe(
+    `ALTER TABLE "${table}" ALTER COLUMN "${column}" SET DEFAULT now()`,
+  );
+
+  await prisma.$executeRawUnsafe(
+    `ALTER TABLE "${table}" ALTER COLUMN "${column}" SET NOT NULL`,
+  );
 }
 
 async function ensureUserTableShape() {
@@ -65,10 +91,7 @@ async function ensureFollowTable() {
     )
   `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Follow"
-      ALTER COLUMN "createdAt" SET DEFAULT now();
-  `);
+  await ensureTimestampColumn("Follow", "createdAt");
 
   await prisma.$executeRawUnsafe(`
     DO $$
@@ -116,11 +139,9 @@ async function ensurePostGraphTables() {
     )
   `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Post"
-      ALTER COLUMN "createdAt" SET DEFAULT now(),
-      ALTER COLUMN "updatedAt" SET DEFAULT now();
-  `);
+  await ensureTimestampColumn("Post", "createdAt");
+  await ensureTimestampColumn("Post", "updatedAt");
+  await ensureColumns("Post", [{ name: "imageUrl", definition: `"imageUrl" TEXT` }]);
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Comment" (
@@ -132,10 +153,7 @@ async function ensurePostGraphTables() {
     )
   `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Comment"
-      ALTER COLUMN "createdAt" SET DEFAULT now();
-  `);
+  await ensureTimestampColumn("Comment", "createdAt");
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Like" (
@@ -146,10 +164,7 @@ async function ensurePostGraphTables() {
     )
   `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Like"
-      ALTER COLUMN "createdAt" SET DEFAULT now();
-  `);
+  await ensureTimestampColumn("Like", "createdAt");
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Save" (
@@ -160,10 +175,7 @@ async function ensurePostGraphTables() {
     )
   `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Save"
-      ALTER COLUMN "createdAt" SET DEFAULT now();
-  `);
+  await ensureTimestampColumn("Save", "createdAt");
 
   await prisma.$executeRawUnsafe(`
     DO $$
