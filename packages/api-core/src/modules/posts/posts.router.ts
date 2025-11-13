@@ -3,7 +3,7 @@ import type { Router as ExpressRouter } from "express";
 import { optionalAuth, requireAuth } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
 import { asyncHandler } from "../../middlewares/async-handler.js";
-import { upload } from "../../utils/uploads.js";
+import { upload, optimizeImage } from "../../utils/uploads.js";
 import {
   commentCreateSchema,
   commentIdSchema,
@@ -28,6 +28,7 @@ postsRouter.post(
   "/",
   requireAuth,
   upload.single("image"),
+  optimizeImage,
   validate(createPostSchema),
   asyncHandler(controller.createPost),
 );

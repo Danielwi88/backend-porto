@@ -3,7 +3,7 @@ import type { Router as ExpressRouter } from "express";
 import { requireAuth } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
 import { asyncHandler } from "../../middlewares/async-handler.js";
-import { upload } from "../../utils/uploads.js";
+import { upload, optimizeImage } from "../../utils/uploads.js";
 import { paginationSchema, updateMeSchema } from "./me.schemas.js";
 import * as controller from "./me.controller.js";
 
@@ -15,6 +15,7 @@ meRouter.patch(
   "/",
   requireAuth,
   upload.single("avatar"),
+  optimizeImage,
   validate(updateMeSchema),
   asyncHandler(controller.updateMe),
 );
